@@ -1,149 +1,156 @@
 import * as React from 'react';
-import {Button, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-import {useState} from "react";
+import {StyleSheet, TouchableOpacity, View, Text, Button} from 'react-native';
+import {useEffect, useState} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const questions = [{
-    question: "What is your name?",
-    answers: [{
-        content: "Mateusz",
-        isCorrect: true
-    },
-        {
-            content: "Paweł",
-            isCorrect: false
-        },
-        {
-            content: "Leon",
-            isCorrect: false
-        },
-        {
-            content: "Dragan",
-            isCorrect: false
-        }]
-}, {
-    question: "What color is the sun?",
-    answers: [{
-        content: "Red",
-        isCorrect: false
-    },
-        {
-            content: "Purple",
-            isCorrect: false
-        },
-        {
-            content: "Yellow",
-            isCorrect: true
-        },
-        {
-            content: "black",
-            isCorrect: false
-        }]
-}, {
-    question: "In what language does a dog speak?",
-    answers: [{
-        content: "Meow",
-        isCorrect: false
-    },
-        {
-            content: "Woof",
-            isCorrect: true
-        },
-        {
-            content: "Ka-kaw",
-            isCorrect: false
-        },
-        {
-            content: "Brrr!!!",
-            isCorrect: false
-        }]
-}, {
-    question: "What is your name?",
-    answers: [{
-        content: "Mateusz",
-        isCorrect: true
-    },
-        {
-            content: "Paweł",
-            isCorrect: false
-        },
-        {
-            content: "Leon",
-            isCorrect: false
-        },
-        {
-            content: "Dragan",
-            isCorrect: false
-        }]
-}]
 
-export default function TestScreen2({ navigation }) {
+export default function TestScreen2({route, navigation}) {
+    const {testId, nick1, dat} = route.params;
+
+    let timer = null;
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [showScore, setShowScore] = useState(false);
     const [score, setScore] = useState(0);
     const [component, showComponent] = useState(true)
+    const [seconds, setSeconds] = useState(30);
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [id, setId] = useState(null)
+
+    useEffect(() => {
+        setId(testId)
+        //console.log(id)
+        //console.log(dat)
+        if (loading === true) {
+            fetch('https://tgryl.pl/quiz/test/' + testId)
+                .then((response) => response.json())
+                .then((json) => {
+                    setData(json);
+                    setLoading(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        }
+        if (seconds > 0) {
+            timer = setTimeout(() => setSeconds(seconds - 1), 1000);
+        } else {
+
+            const nextQuestion = currentQuestion + 1;
+            if (nextQuestion < data.tasks.length) {
+                setCurrentQuestion(nextQuestion);
+            }
+            if (nextQuestion === data.tasks.length) {
+                showComponent(false);
+            } else {
+                setShowScore(true);
+            }
+            setSeconds(data.tasks[currentQuestion].duration);
+        }
+
+    });
+
 
     const handleAnswerOptionClick = (isCorrect) => {
         if (isCorrect) {
             setScore(score + 1);
         }
         const nextQuestion = currentQuestion + 1;
-        if (nextQuestion < questions.length) {
+        if (nextQuestion < data.tasks.length) {
             setCurrentQuestion(nextQuestion);
         }
-        if (nextQuestion === questions.length) {
+        if (nextQuestion === data.tasks.length) {
             showComponent(false);
         } else {
             setShowScore(true);
         }
+        clearTimeout(timer)
+        setSeconds(data.tasks[currentQuestion].duration)
     };
 
     function renderQuiz() {
-        return (
-            <View style={styles.container}>
-                <View style={{paddingVertical: 15, flexDirection: "row", justifyContent: 'space-around'}}>
-                    <Text style={styles.text}> Question {currentQuestion + 1} of {questions.length}</Text>
-                    <Text style={styles.text}> Time: 60 sec</Text>
-                </View>
-                <View style={{padding: 35, flexDirection: "row", justifyContent: 'flex-end'}}>
-                    <Text style={styles.text}> Score: {score}</Text>
-                </View>
-                <View style={styles.questionContainer}>
-                    <Text style={styles.text}>{questions[currentQuestion].question}</Text>
-                </View>
-                <View style={{paddingVertical: 75}}>
-                    <View style={styles.buttonRowContainer}>
-                        <TouchableOpacity style={styles.button}
-                                          onPress={() => handleAnswerOptionClick(questions[currentQuestion].answers[0].isCorrect)}>
-                            <Text style={styles.text}>{questions[currentQuestion].answers[0].content}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.button}
-                                          onPress={() => handleAnswerOptionClick(questions[currentQuestion].answers[1].isCorrect)}>
-                            <Text style={styles.text}>{questions[currentQuestion].answers[1].content}</Text>
-                        </TouchableOpacity>
+        if (loading === false && Object.keys(data).length !== 0) {
+            return (
+                <View style={styles.container}>
+                    <View style={{paddingVertical: 15, flexDirection: "row", justifyContent: 'space-around'}}>
+                        <Text style={styles.text}> Question {currentQuestion + 1} of {data.tasks.length}</Text>
+                        <Text style={styles.text}> Time: {seconds} sec</Text>
                     </View>
-                    <View style={styles.buttonRowContainer}>
-                        <TouchableOpacity style={styles.button}
-                                          onPress={() => handleAnswerOptionClick(questions[currentQuestion].answers[2].isCorrect)}>
-                            <Text style={styles.text}>{questions[currentQuestion].answers[2].content}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.button}
-                                          onPress={() => handleAnswerOptionClick(questions[currentQuestion].answers[3].isCorrect)}>
-                            <Text style={styles.text}>{questions[currentQuestion].answers[3].content}</Text>
-                        </TouchableOpacity>
+                    <View style={{padding: 35, flexDirection: "row", justifyContent: 'flex-end'}}>
+                        <Text style={styles.text}> Score: {score}</Text>
                     </View>
-                </View>
-            </View>)
+                    <View style={styles.questionContainer}>
+                        <Text style={styles.text}>{data.tasks[currentQuestion].question}</Text>
+                    </View>
+                    <View style={{paddingVertical: 75}}>
+                        <View style={styles.buttonRowContainer}>
+                            <TouchableOpacity style={styles.button}
+                                              onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[0].isCorrect)}>
+                                <Text style={styles.text}>{data.tasks[currentQuestion].answers[0].content}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.button}
+                                              onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[1].isCorrect)}>
+                                <Text style={styles.text}>{data.tasks[currentQuestion].answers[1].content}</Text>
+                            </TouchableOpacity>
+                        </View>
+                        < View style={styles.buttonRowContainer}>
+                            <TouchableOpacity style={styles.button}
+                                              onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[2].isCorrect)}>
+                                <Text style={styles.text}>{data.tasks[currentQuestion].answers[2].content}</Text>
+                            </TouchableOpacity>{
+                            <TouchableOpacity style={styles.button}
+                                              onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[3].isCorrect)}>
+                                <Text style={styles.text}>{data.tasks[currentQuestion].answers[3].content}</Text>
+                            </TouchableOpacity>}
+                        </View>
+                    </View>
+                </View>)
+        }
     }
 
     function Result() {
+        const SendResults = () => {
+            try {
+                fetch('http://tgryl.pl/quiz/result', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nick: nick1,
+                        score: score,
+                        total: data.tasks.length,
+                        type: data.name
+                    })
+                });
+            } catch (error) {
+                console.error(error);
+            }
+            navigation.navigate('Results')
+        }
+        const ChangeQuiz = () => {
+            setLoading(true)
+            setScore(0)
+            showComponent(true)
+            clearTimeout(timer)
+            setSeconds(30)
+            setCurrentQuestion(0)
+            navigation.navigate('Home')
+        }
+
         return (
             <View style={{justifyContent: 'center', paddingVertical: 50, padding: 20}}>
                 <Text style={styles.textFinal}>
-                    Final score: {score}/{questions.length}
+                    Final score: {score}/{data.tasks.length}
                 </Text>
                 <Button
-                    onPress={() => navigation.navigate('Results')}
+                    onPress={SendResults}
                     title="Go to scoreboard"
+                />
+                <Button
+                    onPress={ChangeQuiz}
+                    title="Do a new quiz"
                 />
             </View>
         );

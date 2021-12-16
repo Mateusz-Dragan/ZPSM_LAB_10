@@ -39,7 +39,7 @@ export default function Navigation() {
         }
         return (
             <View style={styles.container}>
-                <Text style={{fontSize:40, color:'black'}}>Welcome!!!!!!!!!!</Text>
+                <Text style={{fontFamily: 'PlayfairDisplay-VariableFont_wght',fontSize:40, color:'black'}}>Welcome!!!!!!!!!!</Text>
                 <TextInput style={styles.input} placeholder={"Put in your name"} onChangeText={(value)=>setName(value)}/>
 
                 <Button style={styles.buttonContainer}

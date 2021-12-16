@@ -20,7 +20,7 @@ const questions = [{
             content: "Dragan",
             isCorrect: false
         }],
-    time:60
+    time: 60
 }, {
     question: "What color is the sun?",
     answers: [{
@@ -39,7 +39,7 @@ const questions = [{
             content: "black",
             isCorrect: false
         }],
-    time:60
+    time: 60
 }, {
     question: "In what language does a dog speak?",
     answers: [{
@@ -58,7 +58,7 @@ const questions = [{
             content: "Brrr!!!",
             isCorrect: false
         }],
-    time:60
+    time: 60
 }, {
     question: "How many Harry Potter books are there?",
     answers: [{
@@ -77,7 +77,7 @@ const questions = [{
             content: "5",
             isCorrect: false
         }],
-    time:60
+    time: 60
 }, {
     question: "How many fingers are there on a human hand?",
     answers: [{
@@ -96,7 +96,7 @@ const questions = [{
             content: "5",
             isCorrect: true
         }],
-    time:60
+    time: 60
 }, {
     question: "To which of the following animal groups do humans belong to?",
     answers: [{
@@ -115,7 +115,7 @@ const questions = [{
             content: "Birds",
             isCorrect: false
         }],
-    time:60
+    time: 60
 }, {
     question: "Which of these is a bird?",
     answers: [{
@@ -134,7 +134,7 @@ const questions = [{
             content: "Seagull",
             isCorrect: true
         }],
-    time:60
+    time: 60
 }, {
     question: "How many lives does a cat have?",
     answers: [{
@@ -153,7 +153,7 @@ const questions = [{
             content: "2",
             isCorrect: false
         }],
-    time:60
+    time: 60
 }, {
     question: "How many tips do you get?",
     answers: [{
@@ -172,7 +172,7 @@ const questions = [{
             content: "5",
             isCorrect: false
         }],
-    time:60
+    time: 60
 }, {
     question: "Which bear is the best bear?",
     answers: [{
@@ -191,7 +191,7 @@ const questions = [{
             content: "Panda",
             isCorrect: false
         }],
-    time:60
+    time: 60
 }]
 
 export default function TestScreen1({navigation}) {
@@ -275,13 +275,34 @@ export default function TestScreen1({navigation}) {
     }
 
     function Result() {
+        const SendResults = () => {
+            try {
+                fetch('http://tgryl.pl/quiz/result', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nick: 'Ok',
+                        score: score,
+                        total: questions.length,
+                        type: "Matematyka"
+                    })
+                });
+            } catch (error) {
+                console.error(error);
+            }
+            navigation.navigate('Results')
+        }
+
         return (
             <View style={{justifyContent: 'center', paddingVertical: 50, padding: 20}}>
                 <Text style={styles.textFinal}>
                     Final score: {score}/{questions.length}
                 </Text>
                 <Button
-                    onPress={() => navigation.navigate('Results')}
+                    onPress={SendResults}
                     title="Go to scoreboard"
                 />
             </View>

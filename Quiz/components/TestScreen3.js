@@ -1,158 +1,98 @@
 import * as React from 'react';
-import {Button, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-
+import {StyleSheet, TouchableOpacity, View, Text, Button} from 'react-native';
 import {useState} from "react";
 
-const questions = [{
-    question: "What is your name?",
-    answers: [{
-        content: "Mateusz",
-        isCorrect: true
-    },{
-    content: "Paweł",
-        isCorrect: false
-},
-{
-    content: "Leon",
-        isCorrect: false
-},
-{
-    content: "Dragan",
-        isCorrect: false
-}]
-}, {
-    question: "What color is the sun?",
-        answers: [{
-        content: "Red",
-        isCorrect: false
-    },
-        {
-            content: "Purple",
-            isCorrect: false
-        },
-        {
-            content: "Yellow",
-            isCorrect: true
-        },
-        {
-            content: "black",
-            isCorrect: false
-        }]
-}, {
-    question: "In what language does a dog speak?",
-        answers: [{
-        content: "Meow",
-        isCorrect: false
-    },
-        {
-            content: "Woof",
-            isCorrect: true
-        },
-        {
-            content: "Ka-kaw",
-            isCorrect: false
-        },
-        {
-            content: "Brrr!!!",
-            isCorrect: false
-        }]
-}, {
-    question: "What is your name?",
-        answers: [{
-        content: "Mateusz",
-        isCorrect: true
-    },
-        {
-            content: "Paweł",
-            isCorrect: false
-        },
-        {
-            content: "Leon",
-            isCorrect: false
-        },
-        {
-            content: "Dragan",
-            isCorrect: false
-        }]
-}]
+const d = {
+    "tags": ["tv", "tasiemiec", "serial"],
+    "tasks": [{
+        "question": "Kiedy okazało się, że Massimo jest ojcem Ridgea?",
+        "answers": [{
+            "content": "podczas choroby Steffy, kiedy potrzebowała nerki",
+            "isCorrect": false
+        }, {
+            "content": "podczas wyjazdu do Portofino",
+            "isCorrect": false
+        }, {
+            "content": "podczas narodzin Ridge'a, jednak Stephanie trzymała to wszystko w tajemnicy",
+            "isCorrect": false
+        }, {"content": "podczas wypadku, gdy Ridge'potrzebował krwi", "isCorrect": true}],
+        "duration": 30
+    }, {
+        "question": "Jak ma na imię brat Tylor?",
+        "answers": [{"content": "Jack", "isCorrect": false}, {
+            "content": "Nick",
+            "isCorrect": false
+        }, {"content": "Oscar", "isCorrect": false}, {"content": "Zach", "isCorrect": true}],
+        "duration": 30
+    }, {
+        "question": "Kim była Carmen Arena?",
+        "answers": [{"content": "tancerką", "isCorrect": false}, {
+            "content": "sprzątaczką",
+            "isCorrect": false
+        }, {"content": "kelnerką", "isCorrect": true}, {"content": "piosenkarką", "isCorrect": false}],
+        "duration": 30
+    }, {
+        "question": "Gdzie toczy się akacja serialu?",
+        "answers": [{"content": "w Nowym Jorku", "isCorrect": false}, {
+            "content": "w Miami",
+            "isCorrect": false
+        }, {"content": "w Los Angeles", "isCorrect": true}, {"content": "w Londynie", "isCorrect": false}],
+        "duration": 30
+    }, {
+        "question": "Kto nie jest dzieckiem Brook?",
+        "answers": [{"content": "Bridget", "isCorrect": false}, {
+            "content": "Ridge Junior",
+            "isCorrect": false
+        }, {"content": "Thomas", "isCorrect": true}, {"content": "Rick", "isCorrect": false}],
+        "duration": 30
+    }],
+    "name": "Moda na sukces",
+    "description": "Quiz z najważniejszych wydarzeń serialu.",
+    "level": "średni",
+    "id": "61316f7f99149c1a92250e46"
+}
 
-export default function TestScreen3({ navigation }) {
+export default function TestScreen3({route,navigation}) {
+    const {dat,  nick1} = route.params;
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [showScore, setShowScore] = useState(false);
     const [score, setScore] = useState(0);
-    const [component, showComponent] = useState(true)
+    const [seconds, setSeconds] = useState(60);
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleAnswerOptionClick = (isCorrect) => {
-        if (isCorrect) {
-            setScore(score + 1);
-        }
-        const nextQuestion = currentQuestion + 1;
-        if (nextQuestion < questions.length) {
-            setCurrentQuestion(nextQuestion);
-        }
-        if (nextQuestion === questions.length) {
-            showComponent(false);
-        } else {
-            setShowScore(true);
-        }
-    };
+
+    React.useEffect(() => {
+
+            fetch('http://tgryl.pl/quiz/test/61316f7f99149c1a92250e46')
+                .then((response) => response.json())
+                .then((json) => {
+                    setData(json);
+                    setLoading(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+    });
 
     function renderQuiz() {
-        return (
-            <View style={styles.container}>
-                <View style={{paddingVertical: 15, flexDirection: "row", justifyContent: 'space-around'}}>
-                    <Text style={styles.text}> Question {currentQuestion + 1} of {questions.length}</Text>
-                    <Text style={styles.text}> Time: 60 sec</Text>
-                </View>
-                <View style={{padding: 35, flexDirection: "row", justifyContent: 'flex-end'}}>
-                    <Text style={styles.text}> Score: {score}</Text>
-                </View>
-                <View style={styles.questionContainer}>
-                    <Text style={styles.text}>{questions[currentQuestion].question}</Text>
-                </View>
-                <View style={{paddingVertical: 75}}>
-                    <View style={styles.buttonRowContainer}>
-                        <TouchableOpacity style={styles.button}
-                                          onPress={() => handleAnswerOptionClick(questions[currentQuestion].answers[0].isCorrect)}>
-                            <Text style={styles.text}>{questions[currentQuestion].answers[0].content}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.button}
-                                          onPress={() => handleAnswerOptionClick(questions[currentQuestion].answers[1].isCorrect)}>
-                            <Text style={styles.text}>{questions[currentQuestion].answers[1].content}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.buttonRowContainer}>
-                        <TouchableOpacity style={styles.button}
-                                          onPress={() => handleAnswerOptionClick(questions[currentQuestion].answers[2].isCorrect)}>
-                            <Text style={styles.text}>{questions[currentQuestion].answers[2].content}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.button}
-                                          onPress={() => handleAnswerOptionClick(questions[currentQuestion].answers[3].isCorrect)}>
-                            <Text style={styles.text}>{questions[currentQuestion].answers[3].content}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>)
-    }
 
-    function Result() {
-        return (
-            <View style={{justifyContent: 'center', paddingVertical: 50, padding: 20}}>
-                <Text style={styles.textFinal}>
-                    Final score: {score}/{questions.length}
-                </Text>
-                <Button
-                    onPress={() => navigation.navigate('Results')}
-                    title="Go to scoreboard"
-                />
-            </View>
-        );
+        if (loading === false) {
+            return (
+                <View style={styles.container}>
+                    <View style={{paddingVertical: 15, flexDirection: "row", justifyContent: 'space-around'}}>
+                        <Text
+                            style={styles.text}> Question {currentQuestion + 1} of {data.tasks[0].question}</Text>
+                        <Text style={styles.text}> Time: {seconds} sec</Text>
+                    </View>
+                </View>)
+        }
     }
 
     return (
         <View style={{flex: 1}}>
-            {component ?
-                renderQuiz() : Result()}
+            {
+                renderQuiz()}
         </View>
     );
 }
