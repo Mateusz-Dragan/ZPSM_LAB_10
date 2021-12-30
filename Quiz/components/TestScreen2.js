@@ -2,29 +2,37 @@ import * as React from 'react';
 import {StyleSheet, TouchableOpacity, View, Text, Button} from 'react-native';
 import {useEffect, useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import _ from 'lodash'
 
 
 export default function TestScreen2({route, navigation}) {
-    const {testId, nick1, dat} = route.params;
+    const {testId, nick1} = route.params;
 
     let timer = null;
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [showScore, setShowScore] = useState(false);
+    const [check, setCheck] = useState(true);
     const [score, setScore] = useState(0);
-    const [component, showComponent] = useState(true)
+    const [component, showComponent] = useState(1)
     const [seconds, setSeconds] = useState(30);
+    const [ttimer, setTimer] = useState(true);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [id, setId] = useState(null)
 
     useEffect(() => {
-        setId(testId)
-        //console.log(id)
+        //console.log(component)
+        console.log(id)
         //console.log(dat)
-        if (loading === true) {
+
+        if (loading === true && id !== null) {
             fetch('https://tgryl.pl/quiz/test/' + testId)
                 .then((response) => response.json())
                 .then((json) => {
+                    json.tasks = _.shuffle(json.tasks)
+                    for (let i = 0; i < json.tasks.length; i++) {
+                        json.tasks[i].answers = _.shuffle(json.tasks[i].answers)
+                    }
                     setData(json);
                     setLoading(false);
                 })
@@ -32,22 +40,24 @@ export default function TestScreen2({route, navigation}) {
                     console.error(error);
                 });
         }
-        if (seconds > 0) {
-            timer = setTimeout(() => setSeconds(seconds - 1), 1000);
-        } else {
-
-            const nextQuestion = currentQuestion + 1;
-            if (nextQuestion < data.tasks.length) {
-                setCurrentQuestion(nextQuestion);
-            }
-            if (nextQuestion === data.tasks.length) {
-                showComponent(false);
+        if (ttimer === true) {
+            if (seconds > 0) {
+                timer = setTimeout(() => setSeconds(seconds - 1), 1000);
             } else {
-                setShowScore(true);
-            }
-            setSeconds(data.tasks[currentQuestion].duration);
-        }
 
+                const nextQuestion = currentQuestion + 1;
+                if (nextQuestion < data.tasks.length) {
+                    setCurrentQuestion(nextQuestion);
+                }
+                if (nextQuestion === data.tasks) {
+                    setTimer(false)
+                    showComponent(3);
+                } else {
+                    setShowScore(true);
+                }
+                setSeconds(data.tasks[currentQuestion].duration);
+            }
+        }
     });
 
 
@@ -60,7 +70,8 @@ export default function TestScreen2({route, navigation}) {
             setCurrentQuestion(nextQuestion);
         }
         if (nextQuestion === data.tasks.length) {
-            showComponent(false);
+            setCheck(false);
+            showComponent(3);
         } else {
             setShowScore(true);
         }
@@ -108,6 +119,23 @@ export default function TestScreen2({route, navigation}) {
         }
     }
 
+    function Start() {
+        const StartQuiz = () => {
+            setTimer(true);
+            setId(testId);
+            showComponent(2)
+        }
+        return (
+            <View>
+                <Button
+                    onPress={StartQuiz}
+                    title="StartQuiz">
+                </Button>
+            </View>
+        )
+    }
+
+
     function Result() {
         const SendResults = () => {
             try {
@@ -130,9 +158,10 @@ export default function TestScreen2({route, navigation}) {
             navigation.navigate('Results')
         }
         const ChangeQuiz = () => {
+            setId(null)
             setLoading(true)
             setScore(0)
-            showComponent(true)
+            showComponent(1)
             clearTimeout(timer)
             setSeconds(30)
             setCurrentQuestion(0)
@@ -156,10 +185,19 @@ export default function TestScreen2({route, navigation}) {
         );
     }
 
+    function renderElement() {
+        if (component === 1) {
+            return Start();
+        } else if (component === 2) {
+            return renderQuiz();
+        } else if (component === 3) {
+            return Result();
+        }
+    }
+
     return (
         <View style={{flex: 1}}>
-            {component ?
-                renderQuiz() : Result()}
+            {renderElement()}
         </View>
     );
 }

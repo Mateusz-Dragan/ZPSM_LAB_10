@@ -8,17 +8,19 @@ import {
     Text,
     SafeAreaView,
     Alert,
-    FlatList
+    FlatList, RefreshControl
 } from 'react-native';
 import {useEffect, useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import _ from "lodash";
 
 
 export default function HomeScreen({ navigation }) {
     const [name1, setName] = useState('');
     const [data, setData] = useState([]);
     const [data2, setData2] = useState([]);
-    const [check, setCheck] = useState(true)
+    const [check, setCheck] = useState(true);
+    const [refresh, setRefresh] = useState(true)
 
     const renderItem = ({ item }) => (
         <Tests name={item.name} description={item.description} tags={item.tags} level={item.level} numberOfTasks={item.numberOfTasks} id={item.id}/>
@@ -26,15 +28,27 @@ export default function HomeScreen({ navigation }) {
 
     useEffect(() => {
         getData();
+        getTests();
+        //console.log(refresh)
+    }, []);
+
+    const getTests = ()=> {
         fetch('http://tgryl.pl/quiz/tests')
             .then((response) => response.json())
             .then((json) => {
+                setRefresh(false);
+                json = _.shuffle(json)
                 setData(json);
             })
             .catch((error) => {
                 console.error(error);
             });
-    }, []);
+    }
+
+    const handleRefresh = () => {
+        setRefresh(true);
+        getTests();
+    };
 
     const getData = () =>{
         try{
@@ -52,13 +66,7 @@ export default function HomeScreen({ navigation }) {
     }
 
     const SendData = (id)=>{
-        // fetch('https://tgryl.pl/quiz/test/'+id).then((response) => response.json()).then((json) => {
-        //      setData2(json);
-        // }).catch((error) => {
-        //     console.error(error);
-        // });
-        // console.log(data2)
-        navigation.navigate('Test2',{testId:id, nick1:name1,dat:data2})
+        navigation.navigate('Test2',{testId:id, nick1:name1})
     }
 
 
@@ -81,6 +89,7 @@ export default function HomeScreen({ navigation }) {
             <FlatList
                 data={data}
                 renderItem={renderItem}
+                refreshControl={<RefreshControl refreshing={refresh} onRefresh={handleRefresh}/>}
                 />
 
             <View style={{flexDirection: "row", alignItems:'center', justifyContent:'center'}}>
