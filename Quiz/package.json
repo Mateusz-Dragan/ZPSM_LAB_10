@@ -11,7 +11,8 @@
   },
   "rnpm": {
     "assets": [
-      "./assets/font"
+      "./assets/font",
+      "./assets/www"
     ]
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "react-native-safe-area-context": "^3.3.2",
     "react-native-screens": "^3.9.0",
     "react-native-splash-screen": "^3.3.0",
+    "react-native-sqlite-storage": "^6.0.1",
     "react-native-table-component": "^1.2.1"
   },
   "devDependencies": {
