@@ -26,7 +26,6 @@ const Drawer = createDrawerNavigator();
 
 
 export default function Navigation() {
-    const netInfo = useNetInfo();
     const [showComponent, setShowComponent] = useState(true);
     const [name, setName] = useState('')
     const [data, setData] = useState([]);
@@ -161,6 +160,16 @@ export default function Navigation() {
                 tx.executeSql('INSERT INTO Test (data) VALUES (?);', [JSON.stringify(data)]);
             });
         }
+        function AllTests(props){
+            return data.map(function(item,i){
+                return(<TouchableOpacity key={i} style={styles.drawerButtons} onPress={() => props.navigation.navigate("Test2", {
+                    testId: item.id,
+                    nick1: name
+                })}>
+                    <Text style={{fontSize:25}}>{item.name}</Text>
+                </TouchableOpacity>)
+            })
+        }
         if (loading === false) {
             return (<NavigationContainer>
                 <Drawer.Navigator initialRouteName="Home" drawerContent={(props) => {
@@ -181,17 +190,8 @@ export default function Navigation() {
                                     Test 1
                                 </Text>
                             </TouchableOpacity>
-                            <FlatList
-                                scrollEnabled={false}
-                                data={data}
-                                renderItem={({item}) => (
-                                    <TouchableOpacity style={styles.drawerButtons} onPress={() => props.navigation.navigate("Test2", {
-                                        testId: item.id,
-                                        nick1: name
-                                    })}>
-                                        <Text style={{fontSize:25}}>{item.name}</Text>
-                                    </TouchableOpacity>)}
-                            />
+                            {AllTests(props)}
+
                             <TouchableOpacity style={styles.drawerButtons} onPress={() => RandomQuiz(props)}>
                                 <Text style={{fontSize:25}}>
                                     Random Test

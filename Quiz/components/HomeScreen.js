@@ -23,6 +23,7 @@ export default function HomeScreen({ navigation }) {
     const [refresh, setRefresh] = useState(true)
     const [net,setNet] = useState(false);
     const [dbData, setdbData] = useState([]);
+    const [loading, setLoading] = useState(false)
     const [DB, setDB] = useState(false);
     let db
     const renderItem = ({ item }) => (
@@ -38,13 +39,15 @@ export default function HomeScreen({ navigation }) {
         })
         if (DB === false) {
             getTestTitles();
+            console.log(dbData)
             setDB(true)
         }
         getData();
-        getTests();
-        if(net===false){
-            setData(dbData)
-        }
+        if(loading ===false){getTests();
+        setLoading(true)}
+        // if(net===false){
+        //     setData(dbData)
+        // }
     }, []);
 
     const getTests = ()=> {
@@ -110,7 +113,6 @@ export default function HomeScreen({ navigation }) {
         </View>
 
     );
-
     return (
 
         <SafeAreaView style={styles.container}>
@@ -131,6 +133,7 @@ export default function HomeScreen({ navigation }) {
         </View>
         </SafeAreaView>
     );
+
 }
 const styles = StyleSheet.create({
     container: {flex: 1},

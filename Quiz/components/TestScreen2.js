@@ -21,10 +21,6 @@ export default function TestScreen2({route, navigation}) {
     const [id, setId] = useState(null)
 
     useEffect(() => {
-        //console.log(component)
-        console.log(id)
-        //console.log(dat)
-
         if (loading === true && id !== null) {
             fetch('https://tgryl.pl/quiz/test/' + testId)
                 .then((response) => response.json())
