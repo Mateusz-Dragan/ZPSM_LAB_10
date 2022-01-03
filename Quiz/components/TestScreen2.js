@@ -60,7 +60,6 @@ export default function TestScreen2({route, navigation}) {
         }
     });
 
-
     const handleAnswerOptionClick = (isCorrect) => {
         if (isCorrect) {
             setScore(score + 1);
@@ -94,26 +93,51 @@ export default function TestScreen2({route, navigation}) {
                         <Text style={styles.text}>{data.tasks[currentQuestion].question}</Text>
                     </View>
                     <View style={{paddingVertical: 75}}>
-                        <View style={styles.buttonRowContainer}>
+                        {data.tasks[currentQuestion].answers.length === 3 ?<View style={styles.buttonRowContainer}>
+                            <View style={{paddingVertical:25, paddingHorizontal:25}}>
                             <TouchableOpacity style={styles.button}
                                               onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[0].isCorrect)}>
                                 <Text style={styles.text}>{data.tasks[currentQuestion].answers[0].content}</Text>
                             </TouchableOpacity>
+                            </View>
+                            <View style={{paddingVertical:25, paddingHorizontal:25}}>
                             <TouchableOpacity style={styles.button}
                                               onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[1].isCorrect)}>
                                 <Text style={styles.text}>{data.tasks[currentQuestion].answers[1].content}</Text>
                             </TouchableOpacity>
-                        </View>
-                        < View style={styles.buttonRowContainer}>
+                            </View>
+                            <View style={{paddingVertical:25, paddingHorizontal:25}}>
                             <TouchableOpacity style={styles.button}
                                               onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[2].isCorrect)}>
                                 <Text style={styles.text}>{data.tasks[currentQuestion].answers[2].content}</Text>
-                            </TouchableOpacity>{
-                            <TouchableOpacity style={styles.button}
-                                              onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[3].isCorrect)}>
-                                <Text style={styles.text}>{data.tasks[currentQuestion].answers[3].content}</Text>
-                            </TouchableOpacity>}
-                        </View>
+                            </TouchableOpacity>
+                            </View>
+                        </View>:<View style={styles.buttonRowContainer}>
+                            <View style={{paddingVertical:25, paddingHorizontal:25}}>
+                                <TouchableOpacity style={styles.button}
+                                                  onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[0].isCorrect)}>
+                                    <Text style={styles.text}>{data.tasks[currentQuestion].answers[0].content}</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={{paddingVertical:25, paddingHorizontal:25}}>
+                                <TouchableOpacity style={styles.button}
+                                                  onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[1].isCorrect)}>
+                                    <Text style={styles.text}>{data.tasks[currentQuestion].answers[1].content}</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={{paddingVertical:25, paddingHorizontal:25}}>
+                                <TouchableOpacity style={styles.button}
+                                                  onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[2].isCorrect)}>
+                                    <Text style={styles.text}>{data.tasks[currentQuestion].answers[2].content}</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={{paddingVertical:25, paddingHorizontal:25}}>
+                                <TouchableOpacity style={styles.button}
+                                                  onPress={() => handleAnswerOptionClick(data.tasks[currentQuestion].answers[3].isCorrect)}>
+                                    <Text style={styles.text}>{data.tasks[currentQuestion].answers[3].content}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>}
                     </View>
                 </View>)
         }
@@ -159,6 +183,7 @@ export default function TestScreen2({route, navigation}) {
         }
         const ChangeQuiz = () => {
             setId(null)
+            setTimer(false)
             setLoading(true)
             setScore(0)
             showComponent(1)
@@ -206,11 +231,12 @@ const styles = StyleSheet.create({
     questionContainer: {alignItems: 'center'},
     buttonRowContainer: {
         alignItems: 'center',
+        justifyContent:'center',
         flexDirection: "row",
         paddingVertical: 25,
-        justifyContent: "space-evenly"
+        flexWrap:"wrap",
     },
-    button: {borderWidth: 2, width: 125, height: 50, borderRadius: 6, alignItems: "center", justifyContent: "center"},
+    button: {borderWidth: 2, width: 150, height: 50, borderRadius: 6, alignItems: "center", justifyContent: "center"},
     text: {fontSize: 20, color: 'black'},
     textFinal: {fontSize: 20, color: 'black', textAlign: "center"}
 

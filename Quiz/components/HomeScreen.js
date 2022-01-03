@@ -13,23 +13,38 @@ import {
 import {useEffect, useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import _ from "lodash";
+import NetInfo from "@react-native-community/netinfo";
+import SQLite from "react-native-sqlite-storage";
 
 
 export default function HomeScreen({ navigation }) {
     const [name1, setName] = useState('');
     const [data, setData] = useState([]);
-    const [data2, setData2] = useState([]);
-    const [check, setCheck] = useState(true);
     const [refresh, setRefresh] = useState(true)
-
+    const [net,setNet] = useState(false);
+    const [dbData, setdbData] = useState([]);
+    const [DB, setDB] = useState(false);
+    let db
     const renderItem = ({ item }) => (
         <Tests name={item.name} description={item.description} tags={item.tags} level={item.level} numberOfTasks={item.numberOfTasks} id={item.id}/>
     );
 
     useEffect(() => {
+        NetInfo.fetch().then((res) => {
+            console.log('isConnected', res.isConnected);
+            setNet(res.isConnected.toString());
+            console.log('isWifiEnabled', res.isWifiEnabled)
+            console.log('connectionType', res.type)
+        })
+        if (DB === false) {
+            getTestTitles();
+            setDB(true)
+        }
         getData();
         getTests();
-        //console.log(refresh)
+        if(net===false){
+            setData(dbData)
+        }
     }, []);
 
     const getTests = ()=> {
@@ -43,6 +58,22 @@ export default function HomeScreen({ navigation }) {
             .catch((error) => {
                 console.error(error);
             });
+    }
+    async function getTestTitles() {
+        db = await SQLite.openDatabase(
+            {
+                name: 'db.db',
+                createFromLocation: 1,
+            }
+        );
+
+
+        db.transaction(async tx => {
+            var [tx, results] = await tx.executeSql("SELECT * FROM Test");
+            var row = results.rows.item(0); //get the first row assumed existed.
+            setdbData(JSON.parse(row.data))
+
+        });
     }
 
     const handleRefresh = () => {

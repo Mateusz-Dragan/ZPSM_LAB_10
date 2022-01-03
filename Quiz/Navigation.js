@@ -2,6 +2,7 @@ import * as React from 'react';
 import {createDrawerNavigator, DrawerContentScrollView, DrawerItemList} from '@react-navigation/drawer';
 import {NavigationContainer} from '@react-navigation/native';
 import SQLite from 'react-native-sqlite-storage'
+import NetInfo, {useNetInfo} from "@react-native-community/netinfo"
 import HomeScreen from "./components/HomeScreen"
 import TestScreen1 from "./components/TestScreen1"
 import TestScreen2 from "./components/TestScreen2"
@@ -21,42 +22,55 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import _ from "lodash"
 
-SQLite.DEBUG(true);
-SQLite.enablePromise(true);
 const Drawer = createDrawerNavigator();
 
 
 export default function Navigation() {
+    const netInfo = useNetInfo();
     const [showComponent, setShowComponent] = useState(true);
     const [name, setName] = useState('')
     const [data, setData] = useState([]);
     const [dbData, setdbData] = useState([]);
     const [DB, setDB] = useState(false);
+    const [net, setNet] = useState(false);
     const [loading, setLoading] = useState(true);
+
     let db
     useEffect(() => {
+        NetInfo.fetch().then((res) => {
+            console.log('isConnected', res.isConnected);
+            setNet(res.isConnected.toString());
+            console.log('isWifiEnabled', res.isWifiEnabled)
+            console.log('connectionType', res.type)
+        })
         if (DB === false) {
-            example()
+            getTestTitles();
             setDB(true)
         }
-        console.log(dbData)
         getData()
         if (loading === true) {
             getTests();
+            SaveTests(db);
+        }
+        if(net===false){
+            setData(dbData)
         }
     });
-    async function example() {
+
+    async function getTestTitles() {
         db = await SQLite.openDatabase(
             {
                 name: 'db.db',
                 createFromLocation: 1,
             }
         );
+
+
         db.transaction(async tx => {
             var [tx, results] = await tx.executeSql("SELECT * FROM Test");
-            for(let i=0; i<results.rows.length;i++){var row = results.rows.item(i); //get the first row assumed existed.
+            var row = results.rows.item(0); //get the first row assumed existed.
                 setdbData(JSON.parse(row.data))
-            }
+
         });
     }
 
@@ -66,19 +80,6 @@ export default function Navigation() {
             return JSON.parse(results.row.item(0).data || '{}')
         })
     }
-
-    // const getDB = () => db ? db : db = SQLite.openDatabase(
-    //     {
-    //         name: 'md.db',
-    //         createFromLocation: 1,
-    //     },
-    //
-    //     () => {
-    //     },
-    //     error => {
-    //         console.log(error)
-    //     }
-    // );
     const getData = () => {
         try {
             AsyncStorage.getItem('UserData')
@@ -93,6 +94,11 @@ export default function Navigation() {
         }
     }
 
+    async function SaveTests (db) {
+        db.transaction((tx) => {
+            tx.executeSql('INSERT INTO Test (data) VALUES (?);', [JSON.stringify(data)]);
+        });
+    }
 
     const getTests = () => {
         fetch('http://tgryl.pl/quiz/tests')
@@ -150,14 +156,6 @@ export default function Navigation() {
             const randomElement = data[Math.floor(Math.random() * data.length)].id;
             props.navigation.navigate("Test2", {testId: randomElement, nick1: name})
         }
-        const Print = (db) => {
-            db.transaction( (tx) => {
-                var [tx, results] = tx.executeSql("SELECT * FROM Test");
-                for(let i=0; i<results.rows.length;i++){var row = results.rows.item(i); //get the first row assumed existed.
-                    console.log(row);}
-            })
-        };
-
         const SaveStuff = (db) => {
             db.transaction((tx) => {
                 tx.executeSql('INSERT INTO Test (data) VALUES (?);', [JSON.stringify(data)]);
@@ -168,18 +166,18 @@ export default function Navigation() {
                 <Drawer.Navigator initialRouteName="Home" drawerContent={(props) => {
                     return (
                         <DrawerContentScrollView {...props}>
-                            <TouchableOpacity onPress={() => props.navigation.navigate("Home")}>
-                                <Text>
-                                    {dbData[0].name}
+                            <TouchableOpacity style={styles.drawerButtons} onPress={() => props.navigation.navigate("Home")}>
+                                <Text style={{fontSize:25}}>
+                                    Home
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => props.navigation.navigate("Results")}>
-                                <Text>
+                            <TouchableOpacity style={styles.drawerButtons} onPress={() => props.navigation.navigate("Results")}>
+                                <Text style={{fontSize:25}}>
                                     Results
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => props.navigation.navigate("Test1")}>
-                                <Text>
+                            <TouchableOpacity style={styles.drawerButtons} onPress={() => props.navigation.navigate("Test1")}>
+                                <Text style={{fontSize:25}}>
                                     Test 1
                                 </Text>
                             </TouchableOpacity>
@@ -187,26 +185,21 @@ export default function Navigation() {
                                 scrollEnabled={false}
                                 data={data}
                                 renderItem={({item}) => (
-                                    <TouchableOpacity onPress={() => props.navigation.navigate("Test2", {
+                                    <TouchableOpacity style={styles.drawerButtons} onPress={() => props.navigation.navigate("Test2", {
                                         testId: item.id,
                                         nick1: name
                                     })}>
-                                        <Text>{item.name}</Text>
+                                        <Text style={{fontSize:25}}>{item.name}</Text>
                                     </TouchableOpacity>)}
                             />
-                            <TouchableOpacity onPress={() => RandomQuiz(props)}>
-                                <Text>
+                            <TouchableOpacity style={styles.drawerButtons} onPress={() => RandomQuiz(props)}>
+                                <Text style={{fontSize:25}}>
                                     Random Test
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => SaveStuff(db )}>
-                                <Text>
+                            <TouchableOpacity style={styles.drawerButtons} onPress={() => SaveStuff(db )}>
+                                <Text style={{fontSize:25}}>
                                     Download Tests
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => Print(db)}>
-                                <Text>
-                                    Show Tests
                                 </Text>
                             </TouchableOpacity>
                         </DrawerContentScrollView>
@@ -240,5 +233,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 20,
         marginBottom: 10,
+    },
+    drawerButtons:{
+          borderWidth:2, alignItems: "center", justifyContent: "center"
     }
 })
