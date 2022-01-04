@@ -175,6 +175,14 @@ export default function TestScreen2({route, navigation}) {
             } catch (error) {
                 console.error(error);
             }
+            setId(null)
+            setTimer(false)
+            setLoading(true)
+            setScore(0)
+            showComponent(1)
+            clearTimeout(timer)
+            setSeconds(30)
+            setCurrentQuestion(0)
             navigation.navigate('Results')
         }
         const ChangeQuiz = () => {

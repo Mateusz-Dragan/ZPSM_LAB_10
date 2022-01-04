@@ -13,8 +13,9 @@ import {
 import {useEffect, useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import _ from "lodash";
-import NetInfo from "@react-native-community/netinfo";
 import SQLite from "react-native-sqlite-storage";
+import InternetCheck from "./InternetCheck";
+import NetInfo from "@react-native-community/netinfo";
 
 
 export default function HomeScreen({ navigation }) {
@@ -25,30 +26,34 @@ export default function HomeScreen({ navigation }) {
     const [dbData, setdbData] = useState([]);
     const [loading, setLoading] = useState(false)
     const [DB, setDB] = useState(false);
+    const [isInternetReachable, setIsInternetReachable] = useState(false)
     let db
     const renderItem = ({ item }) => (
         <Tests name={item.name} description={item.description} tags={item.tags} level={item.level} numberOfTasks={item.numberOfTasks} id={item.id}/>
     );
 
     useEffect(() => {
-        NetInfo.fetch().then((res) => {
-            console.log('isConnected', res.isConnected);
-            setNet(res.isConnected.toString());
-            console.log('isWifiEnabled', res.isWifiEnabled)
-            console.log('connectionType', res.type)
-        })
         if (DB === false) {
             getTestTitles();
             console.log(dbData)
             setDB(true)
         }
         getData();
-        if(loading ===false){getTests();
+        if(loading ===false){
+            getTests();
         setLoading(true)}
-        // if(net===false){
-        //     setData(dbData)
-        // }
     }, []);
+    useEffect(() => {
+        // Subscribe
+        const unsubscribe = NetInfo.addEventListener((state) => {
+            setIsInternetReachable(state.isInternetReachable);
+            console.log("Connection type", state.type);
+            console.log("Is internet Reachable?", isInternetReachable);
+        });
+        return () => {
+            unsubscribe();
+        };
+    },[isInternetReachable])
 
     const getTests = ()=> {
         fetch('http://tgryl.pl/quiz/tests')
@@ -117,7 +122,7 @@ export default function HomeScreen({ navigation }) {
 
         <SafeAreaView style={styles.container}>
             <View style={{flexDirection: "row", alignItems:'center', justifyContent:'center'}}>
-            <Text style={{fontSize:30, color:'black'}}> Welcome to the quiz {name1}</Text>
+            <Text style={{fontSize:30, color:'black'}}> Welcome to the quiz {name1} </Text>
         </View>
             <FlatList
                 data={data}

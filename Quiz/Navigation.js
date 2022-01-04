@@ -2,11 +2,11 @@ import * as React from 'react';
 import {createDrawerNavigator, DrawerContentScrollView, DrawerItemList} from '@react-navigation/drawer';
 import {NavigationContainer} from '@react-navigation/native';
 import SQLite from 'react-native-sqlite-storage'
-import NetInfo, {useNetInfo} from "@react-native-community/netinfo"
 import HomeScreen from "./components/HomeScreen"
 import TestScreen1 from "./components/TestScreen1"
 import TestScreen2 from "./components/TestScreen2"
 import ResultsScreen from "./components/ResultsScreen"
+import InternetCheck from "./components/InternetCheck";
 import {useEffect, useState} from "react";
 import {
     Alert,
@@ -21,7 +21,6 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import _ from "lodash"
-
 const Drawer = createDrawerNavigator();
 
 
@@ -29,19 +28,15 @@ export default function Navigation() {
     const [showComponent, setShowComponent] = useState(true);
     const [name, setName] = useState('')
     const [data, setData] = useState([]);
+    const [detailsData, setDetailsData] = useState([]);
     const [dbData, setdbData] = useState([]);
+    const [dbDetailsData, setdbDetailsData] = useState([]);
     const [DB, setDB] = useState(false);
     const [net, setNet] = useState(false);
     const [loading, setLoading] = useState(true);
 
     let db
     useEffect(() => {
-        NetInfo.fetch().then((res) => {
-            console.log('isConnected', res.isConnected);
-            setNet(res.isConnected.toString());
-            console.log('isWifiEnabled', res.isWifiEnabled)
-            console.log('connectionType', res.type)
-        })
         if (DB === false) {
             getTestTitles();
             setDB(true)
@@ -50,9 +45,6 @@ export default function Navigation() {
         if (loading === true) {
             getTests();
             SaveTests(db);
-        }
-        if(net===false){
-            setData(dbData)
         }
     });
 
@@ -63,21 +55,21 @@ export default function Navigation() {
                 createFromLocation: 1,
             }
         );
-
-
         db.transaction(async tx => {
             var [tx, results] = await tx.executeSql("SELECT * FROM Test");
-            var row = results.rows.item(0); //get the first row assumed existed.
+            var row = results.rows.item(0);
                 setdbData(JSON.parse(row.data))
+        });
+        let holder=[3]
+        db.transaction(async tx => {
+            var [tx, results] = await tx.executeSql("SELECT * FROM Test_Details");
+            for(let i = 0; i<4;i++){
+                var row = results.rows.item(i);
+                holder[i]=JSON.parse(row.data)
+            }
+            setdbDetailsData(holder);
 
         });
-    }
-
-    function getAllTests(){
-        const query = 'SELECT * FROM Test';
-        return db.executeSql(query).then(([results])=>{
-            return JSON.parse(results.row.item(0).data || '{}')
-        })
     }
     const getData = () => {
         try {
@@ -97,6 +89,20 @@ export default function Navigation() {
         db.transaction((tx) => {
             tx.executeSql('INSERT INTO Test (data) VALUES (?);', [JSON.stringify(data)]);
         });
+        for(let i=0;i<data.length; i++)
+        {
+            fetch('https://tgryl.pl/quiz/test/' + data[i].id)
+                .then((response) => response.json())
+                .then((json) => {
+                    setDetailsData(json);
+                    db.transaction((tx) => {
+                        tx.executeSql('INSERT INTO Test_Details (test_details) VALUES (?);', [JSON.stringify(detailsData)]);
+                    });
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        }
     }
 
     const getTests = () => {
@@ -155,10 +161,24 @@ export default function Navigation() {
             const randomElement = data[Math.floor(Math.random() * data.length)].id;
             props.navigation.navigate("Test2", {testId: randomElement, nick1: name})
         }
-        const SaveStuff = (db) => {
+        const SaveTest = async (db) => {
             db.transaction((tx) => {
                 tx.executeSql('INSERT INTO Test (data) VALUES (?);', [JSON.stringify(data)]);
             });
+            for(let i=0;i<data.length; i++)
+            {
+                fetch('https://tgryl.pl/quiz/test/' + data[i].id)
+                    .then((response) => response.json())
+                    .then((json) => {
+                        setDetailsData(json);
+                        db.transaction((tx) => {
+                            tx.executeSql('INSERT INTO Test_Details (test_details) VALUES (?);', [JSON.stringify(detailsData)]);
+                        });
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+            }
         }
         function AllTests(props){
             return data.map(function(item,i){
@@ -197,7 +217,7 @@ export default function Navigation() {
                                     Random Test
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.drawerButtons} onPress={() => SaveStuff(db )}>
+                            <TouchableOpacity style={styles.drawerButtons} onPress={() => SaveTest(db )}>
                                 <Text style={{fontSize:25}}>
                                     Download Tests
                                 </Text>
